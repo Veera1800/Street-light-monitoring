@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body p-4 text-center">
+    <h3 id="welcomeMsg" class="text-primary mb-3">Loading Dashboard...</h3>
+    <p class="text-muted">Auto-logout policy: JWT tokens expire automatically in 1 minute.</p>
+    <button class="btn btn-danger" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<script>
+  async function loadDashboard() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/';
+      return;
+    }
+
+    const res = await fetch('/api/home', {
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('welcomeMsg').innerText = data.message;
+      
+      // Auto logout timer check after 60 seconds
+      setTimeout(() => {
+        alert("Session expired (1 min auto-logout). Please log in again.");
+        logout();
+      }, 60000);
+
+    } else {
+      alert("Session expired or invalid token. Redirecting to login.");
+      logout();
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = '/';
+  }
+
+  loadDashboard();
+</script>
+{% endblock %}
+
